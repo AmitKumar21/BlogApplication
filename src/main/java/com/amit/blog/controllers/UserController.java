@@ -28,59 +28,46 @@ import com.amit.blog.payloads.UserDto;
 import com.amit.blog.services.UserService;
 
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/api/v1/users")
 public class UserController {
+
 	@Autowired
-	UserService userService;
+	private UserService userService;
 
+	// POST-create user
 	@PostMapping("/")
-	private ResponseEntity<UserDto> createUser(@Valid @RequestBody UserDto userDto) {
-
-		UserDto createdUserDto = userService.createUser(userDto);
-		return new ResponseEntity<>(createdUserDto, HttpStatus.CREATED);
-
+	public ResponseEntity<UserDto> createUser(@Valid @RequestBody UserDto userDto) {
+		UserDto createUserDto = this.userService.createUser(userDto);
+		return new ResponseEntity<>(createUserDto, HttpStatus.CREATED);
 	}
 
-	@PutMapping("/user/{userId}")
-	private ResponseEntity<UserDto> updateUser(@Valid @RequestBody UserDto userDto, @PathVariable Integer userId) {
+	// PUT- update user
 
-		UserDto updatedUserDto = userService.updateUser(userDto, userId);
-		return ResponseEntity.ok(updatedUserDto);
-
+	@PutMapping("/{userId}")
+	public ResponseEntity<UserDto> updateUser(@Valid @RequestBody UserDto userDto, @PathVariable("userId") Integer uid) {
+		UserDto updatedUser = this.userService.updateUser(userDto, uid);
+		return ResponseEntity.ok(updatedUser);
 	}
+
+	//ADMIN
+	// DELETE -delete user
 	@PreAuthorize("hasRole('ADMIN')")
-	@DeleteMapping("/user/{userId}")
-	public ResponseEntity<ApiResponse> deleteUser(@PathVariable Integer userId) {
-
-		userService.deleteUser(userId);
-		return new ResponseEntity(new ApiResponse("User Deleted Succesfully", true),HttpStatus.OK);
-
+	@DeleteMapping("/{userId}")
+	public ResponseEntity<ApiResponse> deleteUser(@PathVariable("userId") Integer uid) {
+		this.userService.deleteUser(uid);
+		return new ResponseEntity<ApiResponse>(new ApiResponse("User deleted Successfully", true), HttpStatus.OK);
 	}
+
+	// GET - user get
 	@GetMapping("/")
-	private ResponseEntity<List<UserDto>> getAllUser() {
-
-		List<UserDto> users=userService.getAllUsers();  
-		return ResponseEntity.ok(users);
-
+	public ResponseEntity<List<UserDto>> getAllUsers() {
+		return ResponseEntity.ok(this.userService.getAllUsers());
 	}
-	@GetMapping("/user/{userId}")
-	private ResponseEntity<UserDto> getUserById(@PathVariable Integer userId) {
 
-		UserDto updatedUserDto = userService.getUserById(userId);
-		return ResponseEntity.ok(updatedUserDto);
-
+	// GET - user get
+	@GetMapping("/{userId}")
+	public ResponseEntity<UserDto> getSingleUser(@PathVariable Integer userId) {
+		return ResponseEntity.ok(this.userService.getUserById(userId));
 	}
-	
-	 @ResponseStatus(code =HttpStatus.BAD_REQUEST)
-	    @ExceptionHandler(MethodArgumentNotValidException.class)
-	    public Map<String, String> handleMethodArgumentNotValid(MethodArgumentNotValidException ex) {
-	        Map<String, String> errors = new HashMap<>();
-	     
-	        ex.getBindingResult().getFieldErrors().forEach(error -> 
-	            errors.put(error.getField(), error.getDefaultMessage()));
-	         
-	        return errors;
-	    }
-	
 
 }
